@@ -14,24 +14,29 @@ export default {
 					auth: false,
 				},
 			},
-			// Progress routes
-			{
-				method: 'POST',
-				path: '/api/progress/toggle',
-				handler: progressController.toggleComplete,
-				config: {
-					policies: ['global::is-student'],
-				},
-			},
-			{
-				method: 'GET',
-				path: '/api/progress/course/:courseId',
-				handler: progressController.getProgress,
-				config: {
-					auth: false,
-				},
-			},
 		]);
+
+		strapi.server.routes({
+			type: 'content-api',
+			routes: [
+				{
+					method: 'POST',
+					path: '/progress/actions/toggle',
+					handler: progressController.toggleComplete,
+					info: { type: 'content-api' },
+					config: {
+						policies: ['global::is-student'],
+					},
+				},
+				{
+					method: 'GET',
+					path: '/progress/course/:courseId',
+					handler: progressController.getProgress,
+					info: { type: 'content-api' },
+					config: {},
+				},
+			],
+		});
 	},
 
 	bootstrap(/* { strapi }: { strapi: Core.Strapi } */) {},

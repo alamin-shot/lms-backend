@@ -10,6 +10,15 @@ const controller = {
 		}
 
 		try {
+			const lesson = await strapi.db.query('api::lesson.lesson').findOne({
+				where: { id: lessonId },
+				populate: { course: true },
+			});
+
+			if (!lesson) {
+				return ctx.notFound('Lesson not found');
+			}
+
 			let progress = await strapi.db.query('api::progress.progress').findOne({
 				where: {
 					users_permissions_user: userId,
@@ -34,15 +43,6 @@ const controller = {
 						completed: true,
 					},
 				});
-			}
-
-			const lesson = await strapi.db.query('api::lesson.lesson').findOne({
-				where: { id: lessonId },
-				populate: { course: true },
-			});
-
-			if (!lesson) {
-				return ctx.notFound('Lesson not found');
 			}
 
 			const courseLessons = await strapi.db
@@ -92,7 +92,7 @@ const controller = {
 				.query('api::progress.progress')
 				.findMany({
 					where: {
-						user: userId,
+						users_permissions_user: userId,
 						lesson: { course: courseId },
 					},
 					populate: { lesson: true },
