@@ -1,6 +1,7 @@
 import type { Core } from '@strapi/strapi';
 import registrationController from './api/registration/controllers/registration';
 import progressController from './api/progress/controllers/progress';
+import customQuizAttemptController from './api/quiz-attempt/controllers/custom-quiz-attempt';
 
 export default {
 	register({ strapi }: { strapi: Core.Strapi }) {
@@ -33,7 +34,27 @@ export default {
 					path: '/progress/course/:courseId',
 					handler: progressController.getProgress,
 					info: { type: 'content-api' },
-					config: {},
+					config: {
+						policies: ['global::is-student'],
+					},
+				},
+				{
+					method: 'POST',
+					path: '/quiz/submit',
+					handler: customQuizAttemptController.submitQuiz,
+					info: { type: 'content-api' },
+					config: {
+						policies: ['global::is-student'],
+					},
+				},
+				{
+					method: 'GET',
+					path: '/quiz/attempts/:quizId',
+					handler: customQuizAttemptController.getAttempts,
+					info: { type: 'content-api' },
+					config: {
+						policies: ['global::is-student'],
+					},
 				},
 			],
 		});
