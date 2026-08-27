@@ -34,7 +34,6 @@ const config = ({
 					secure: env.bool('STRAPI_COOKIE_SECURE', false),
 				},
 			},
-			populateUserRelations: true,
 		},
 	},
 	upload: {
