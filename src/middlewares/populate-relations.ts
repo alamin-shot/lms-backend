@@ -2,30 +2,33 @@ import type { Core } from '@strapi/strapi';
 
 const USER_UID = 'plugin::users-permissions.user';
 
-const populateAuthenticatedLoginUser = async (
-	ctx: any,
-	strapi: Core.Strapi,
-) => {
-	if (ctx.path !== '/api/auth/local' || !ctx.body?.user?.id) {
+const populateAuthenticatedUser = async (ctx: any, strapi: Core.Strapi) => {
+	const isLogin = ctx.path === '/api/auth/local';
+	const isMe = ctx.path === '/api/users/me';
+	const userId = isLogin ? ctx.body?.user?.id : ctx.body?.id;
+
+	if ((!isLogin && !isMe) || !userId) {
 		return;
 	}
 
 	const user = await strapi.db.query(USER_UID).findOne({
-		where: { id: ctx.body.user.id },
-		populate: ['role'],
+		where: { id: userId },
+		populate: {
+			role: {
+				fields: ['id', 'name', 'type', 'description'],
+			},
+		},
 	});
 
-	if (!user) {
+	if (!user?.role) {
 		return;
 	}
 
-	const sanitizedUser = await strapi.contentAPI.sanitize.output(
-		user,
-		strapi.getModel(USER_UID),
-		{ auth: ctx.state.auth },
-	);
-
-	ctx.body.user = sanitizedUser;
+	if (isLogin) {
+		ctx.body.user = { ...ctx.body.user, role: user.role };
+	} else {
+		ctx.body = { ...ctx.body, role: user.role };
+	}
 };
 
 export default (_config: unknown, { strapi }: { strapi: Core.Strapi }) => {
@@ -35,6 +38,6 @@ export default (_config: unknown, { strapi }: { strapi: Core.Strapi }) => {
 		}
 
 		await next();
-		await populateAuthenticatedLoginUser(ctx, strapi);
+		await populateAuthenticatedUser(ctx, strapi);
 	};
 };
